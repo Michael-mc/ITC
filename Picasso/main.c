@@ -1,9 +1,8 @@
 #include <windows.h>
-#include <wingdi.h>
-#include <winuser.h>
+#include <stdio.h>
+#include "Picasso.h"
 
-
-LRESULT WindowProcDontLook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+__stdcall LRESULT WindowProcDontLook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
@@ -15,12 +14,22 @@ LRESULT WindowProcDontLook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {PAINTSTRUCT paint;
         HDC hWndDc = BeginPaint(hwnd, &paint);
         /*pBitBlt(hWndDc, 0, 0, 640, 480, hDibDC, 0, 0, SRCCOPY);*/
-        for(int x; x<640*480; ++x)
-            SetPixel(hWndDc, x % 640, x / 640, RGB(255,255,255));
-        EndPaint(hwnd, &paint);
-    break;
+        for (int j = 0; j< g_picture_data.height; j++) {
+            for(int i = 0; i< g_picture_data.row_size; ++i) {
+                int pos = j * g_picture_data.row_size + i * 3;
+                SetPixel(hWndDc, i, j, 
+                RGB(g_picture_data.buffer[pos],
+                    g_picture_data.buffer[pos+1],
+                    g_picture_data.buffer[pos+2]));
+            }
+        
         }
-        return 0;
+        EndPaint(hwnd, &paint);
+        
+        }
+        break;
+        //return 0;
+    
 
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -43,25 +52,20 @@ void DisplayBuffer(byte* buffer) {
         CLASS_NAME,                     // Window class
         L"Learn to Program Windows",    // Window text
         WS_OVERLAPPEDWINDOW,            // Window style
-
         // Size and position
-        CW_USEDEFAULT, CW_USEDEFAULT, xres, yres,
-
+        CW_USEDEFAULT, CW_USEDEFAULT, g_picture_data.row_size, g_picture_data.size / g_picture_data.row_size / 3,
         NULL,       // Parent window    
         NULL,       // Menu
         GetModuleHandle(0),  // Instance handle
         NULL        // Additional application data
         );
-
     if (hwnd == NULL)
     {
         return 0;
     }
-
     ShowWindow(hwnd, 5);
-
     HDC hDesktopDC = GetDC(GetDesktopWindow());
-    if (buffer == NULL) {  /*ERROR*/  }
+    //if (buffer == NULL) {  /*ERROR*/  }
     hDibDC = CreateCompatibleDC(hDesktopDC);
     ReleaseDC(GetDesktopWindow(), hDesktopDC);
     MSG msg = { };
@@ -72,55 +76,57 @@ void DisplayBuffer(byte* buffer) {
     }
 }
 
+unsigned char* readBMP(char* filename)
+{
+    int i;
+    FILE* f = fopen(filename, "rb");
+    unsigned char info[54];
+    fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
 
-__declspec(dllexport) int blr_to_pixel_array(byte* buffer) {    
-    for (int i = 0; i < size; ++i ) {
-        buffer[i]^=(byte)i;
-    }
+    // extract image height and width from header
+    int width = *(int*)&info[18];
+    int height = *(int*)&info[22];
+
+    int size = 3 * width * height;
+    g_picture_data.buffer = malloc(size); // allocate 3 bytes per pixel
+    g_picture_data.row_size = width;
+    g_picture_data.height = height;
+    g_picture_data.size = size;
     
-    BITMAPFILEHEADER *header = buffer;
-    byte *image_start = buffer + header->bfOffBits;
+    printf("width: %d, height: %d", width, height);
+    int line_pad = g_picture_data.row_size % 4;
+    printf("line pad: %d", line_pad);
+    char * dest = g_picture_data.buffer;
+    for (int j = 0 ; j< height; j++) {
+        fread(dest , 3, width, f); // read the rest of the data at once
+        dest += 3 * width;
+        if (line_pad) {
+            DWORD junk;
+            fread(&junk, 1, line_pad, f);
+        }        
+    }/*
+    for (int x= 0 ; x < size; x+=3) {
+        char temp = g_picture_data.buffer[x];
+        g_picture_data.buffer[x] = g_picture_data.buffer[x+2];
+        g_picture_data.buffer[x+2] = temp;
+    }*/
+    printf("\r\n");
+    //  printf("%x %x %x %x %x %x", g_picture_data.buffer[0], g_picture_data.buffer[1], g_picture_data.buffer[2], g_picture_data.buffer[3] ,g_picture_data.buffer[4], g_picture_data.buffer[5], g_picture_data.buffer[6]);
     
-    BITMAPINFOHEADER *bitmap_info = (BITMAPINFOHEADER *)(header+1)
-    if (bitmap_info.biHeight <= 0 || bitmap_info.biHeight <= 0) return 0;
-    g_picture_data.row_size = bitmap_info->biWidth;
-    g_picture_data.size = bitmap_info->biWidth * bitmap_info.biHeight;
-    g_picture_data.buffer = malloc(g_picture_data.size);
-    
-    
-    //now, the image will be written in the file in a reverse manner, i need to read it.
-    byte *image_pointer =  
-    
+    fclose(f);
 }
-int main(int argc, char* argv[]) {
+
+
+int main(int argc, char* argv[]) 
+{
     if (argc < 2) {
-        printf("Gimme blr\r\n")
+        printf("Gimme blr\r\n");
         return -1;
     }
     
-    FILE* blr = fopen(argv, "rb");
-    if(!blr) {
-        printf("Gimme blr\r\n"); return -1;
-    }
-    
-    fseek(blr, 0L, SEEK_END);
-    size_t size = ftell(fp);
-    fseek(blr, 0L, SEEK_SET);
-    
-    byte* buffer = malloc(size);
-    if(!buffer) {printf("blr too big\r\n"); return -2;}
-    
-    fread(buffer, 1, size, blr);
-    
-    if(!blr_to_pixel_array(buffer)) {
-        printf("bad blr\r\n");
-        return -3;
-    }
-    
-    
-    
+    readBMP(argv[1]);
     
     DisplayBuffer(NULL);
-    free(buffer);
+    
     return 0;
 }
