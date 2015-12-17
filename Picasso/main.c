@@ -80,10 +80,16 @@ __declspec(dllexport) int blr_to_pixel_array(byte* buffer) {
     
     BITMAPFILEHEADER *header = buffer;
     byte *image_start = buffer + header->bfOffBits;
-    g_picture_data.buffer = malloc(header->bfSize);
     
     BITMAPINFOHEADER *bitmap_info = (BITMAPINFOHEADER *)(header+1)
+    if (bitmap_info.biHeight <= 0 || bitmap_info.biHeight <= 0) return 0;
+    g_picture_data.row_size = bitmap_info->biWidth;
+    g_picture_data.size = bitmap_info->biWidth * bitmap_info.biHeight;
+    g_picture_data.buffer = malloc(g_picture_data.size);
     
+    
+    //now, the image will be written in the file in a reverse manner, i need to read it.
+    byte *image_pointer =  
     
 }
 int main(int argc, char* argv[]) {
@@ -106,7 +112,10 @@ int main(int argc, char* argv[]) {
     
     fread(buffer, 1, size, blr);
     
-    blr_to_pixel_array(buffer);
+    if(!blr_to_pixel_array(buffer)) {
+        printf("bad blr\r\n");
+        return -3;
+    }
     
     
     
