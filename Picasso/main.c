@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include "Picasso.h"
 
-__stdcall LRESULT WindowProcDontLook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+ LRESULT __stdcall WindowProcDontLook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	int i, j;
     switch (uMsg)
     {
     case WM_DESTROY:
@@ -14,13 +15,14 @@ __stdcall LRESULT WindowProcDontLook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
         {PAINTSTRUCT paint;
         HDC hWndDc = BeginPaint(hwnd, &paint);
         /*pBitBlt(hWndDc, 0, 0, 640, 480, hDibDC, 0, 0, SRCCOPY);*/
-        for (int j = 0; j< g_picture_data.height; j++) {
-            for(int i = 0; i< g_picture_data.row_size; ++i) {
-                int pos = j * g_picture_data.row_size + i * 3;
+		int pos  = 0;
+        for ( j = 0; j< g_picture_data.height; ++j) {
+            for( i = 0; i< g_picture_data.width; ++i) {                
                 SetPixel(hWndDc, i, j, 
-                RGB(g_picture_data.buffer[pos],
-                    g_picture_data.buffer[pos+1],
-                    g_picture_data.buffer[pos+2]));
+				RGB(g_picture_data.buffer[pos],
+					g_picture_data.buffer[pos+1],
+					g_picture_data.buffer[pos+2]));
+				pos+=3;
             }
         
         }
@@ -36,24 +38,26 @@ __stdcall LRESULT WindowProcDontLook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 }
 
 void DisplayBuffer(byte* buffer) {
-    const wchar_t CLASS_NAME[]  = L"PicWindow";
+    const char CLASS_NAME[]  = "PicWindow";
     
-    WNDCLASS wc = { };
-
+    WNDCLASS wc = { 0 };
+	HDC hDesktopDC;
+	MSG msg = { 0 }; 
     wc.lpfnWndProc   = WindowProcDontLook;
     wc.lpszClassName = CLASS_NAME;
 
     RegisterClass(&wc);
 
-    // Create the window.
+	
 
+    // Create the window.
     hwnd = CreateWindowEx(
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class
-        L"Learn to Program Windows",    // Window text
+        "Learn to Program Windows",     // Window text
         WS_OVERLAPPEDWINDOW,            // Window style
         // Size and position
-        CW_USEDEFAULT, CW_USEDEFAULT, g_picture_data.row_size, g_picture_data.size / g_picture_data.row_size / 3,
+        CW_USEDEFAULT, CW_USEDEFAULT, g_picture_data.width, g_picture_data.size / g_picture_data.width / 3,
         NULL,       // Parent window    
         NULL,       // Menu
         GetModuleHandle(0),  // Instance handle
@@ -61,14 +65,14 @@ void DisplayBuffer(byte* buffer) {
         );
     if (hwnd == NULL)
     {
-        return 0;
+        return ;
     }
     ShowWindow(hwnd, 5);
-    HDC hDesktopDC = GetDC(GetDesktopWindow());
+    hDesktopDC = GetDC(GetDesktopWindow());
     //if (buffer == NULL) {  /*ERROR*/  }
     hDibDC = CreateCompatibleDC(hDesktopDC);
     ReleaseDC(GetDesktopWindow(), hDesktopDC);
-    MSG msg = { };
+    
     while (GetMessage(&msg, NULL, 0, 0))
     {
         TranslateMessage(&msg);
@@ -78,40 +82,50 @@ void DisplayBuffer(byte* buffer) {
 
 unsigned char* readBMP(char* filename)
 {
-    int i;
+	struct pixel {char r; char g; char b;} tempp, *pixel_buffer;
+    unsigned int i, j, width, height, size, line_pad, image_size ;
     FILE* f = fopen(filename, "rb");
-    unsigned char info[54];
+    unsigned char temp, info[54];
+
+	char * dest;
     fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
 
     // extract image height and width from header
-    int width = *(int*)&info[18];
-    int height = *(int*)&info[22];
+    width = *(int*)&info[18];
+    height = *(int*)&info[22];
+	line_pad = width % 4;
 
-    int size = 3 * width * height;
-    g_picture_data.buffer = malloc(size); // allocate 3 bytes per pixel
-    g_picture_data.row_size = width;
+    size = 3 * width * height;	
+    g_picture_data.buffer = (char *)malloc(size); // allocate 3 bytes per pixel
+    g_picture_data.width = width;
     g_picture_data.height = height;
     g_picture_data.size = size;
     
-    printf("width: %d, height: %d", width, height);
-    int line_pad = g_picture_data.row_size % 4;
-    printf("line pad: %d", line_pad);
-    char * dest = g_picture_data.buffer;
-    for (int j = 0 ; j< height; j++) {
-        fread(dest , 3, width, f); // read the rest of the data at once
-        dest += 3 * width;
-        if (line_pad) {
-            DWORD junk;
-            fread(&junk, 1, line_pad, f);
-        }        
-    }/*
-    for (int x= 0 ; x < size; x+=3) {
-        char temp = g_picture_data.buffer[x];
-        g_picture_data.buffer[x] = g_picture_data.buffer[x+2];
-        g_picture_data.buffer[x+2] = temp;
-    }*/
-    printf("\r\n");
-    //  printf("%x %x %x %x %x %x", g_picture_data.buffer[0], g_picture_data.buffer[1], g_picture_data.buffer[2], g_picture_data.buffer[3] ,g_picture_data.buffer[4], g_picture_data.buffer[5], g_picture_data.buffer[6]);
+    dest  = g_picture_data.buffer;
+	for (j=0; j < height; ++j) {
+		fread(dest, 1, width * 3, f);
+		dest += width * 3;
+		if (line_pad) {
+			unsigned long junk;
+			fread(&junk, 1, line_pad, f);
+		}
+	}
+	for (i = 0; i < size; i+=3) {
+		temp = g_picture_data.buffer[i];
+		g_picture_data.buffer[i] = g_picture_data.buffer[i+2];
+		g_picture_data.buffer[i+2] = temp;
+	}
+	pixel_buffer = (struct pixel *)g_picture_data.buffer;
+	
+	for (i = 0; i < height/ 2; i++) {
+		for (j = 0; j < width; j++) { 
+			tempp = pixel_buffer[j + i * width];
+			pixel_buffer[j + i * width] = pixel_buffer[(height -i) * width + j];
+			pixel_buffer[(height -i)  * width + j] = tempp;
+		}
+	}
+	
+    
     
     fclose(f);
 }

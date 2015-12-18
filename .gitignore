@@ -10,4 +10,6 @@ IBeCool/Debug
 ITC/*
 Picasso/Debug
 Picasso/Debug/*
+*.sdf
+*.opensdf
 

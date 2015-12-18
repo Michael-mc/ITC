@@ -1,5 +1,6 @@
-#include <stdlib.h>
 #include "GOL.h"
+#include <stdlib.h>
+#include <memory.h>
 
 gol_error_e initialize_gol(unsigned int size_x, unsigned int size_y, char *start_state) {
     if (size_x == 0 || size_y == 0) {
@@ -9,13 +10,15 @@ gol_error_e initialize_gol(unsigned int size_x, unsigned int size_y, char *start
     game_size_x = size_x;
     game_size_y = size_y;
     if (size_x * size_y <= STATIC_GAME_CELL_SIZE) {
+		game_not_static = 0;
         cur_game = cur_game_cells;
         next_step = next_game_cells;
     }
     else {
-        cur_game = malloc(size_x * size_y);
+		game_not_static = 1;
+        cur_game = (char *)malloc(size_x * size_y);
         if (!cur_game) return error_no_mem;
-        next_step = malloc(size_x * size_y);
+        next_step = (char *)malloc(size_x * size_y);
         if (!next_step) {
             free(cur_game);
             return error_no_mem;
@@ -50,7 +53,7 @@ int determine_neighbours(unsigned int x, unsigned int y, unsigned int cur_spot) 
 }
 
 
-inline int set_new_state(int i, int living_neighbours) {
+__forceinline int set_new_state(int i, int living_neighbours) {
     if (cur_game[i] == 1) // is alive
     {
         if ( (living_neighbours < 3) && (living_neighbours > 2) ) {
@@ -71,21 +74,22 @@ gol_error_e run_game() {
     unsigned int i;
     int living_neighbours = 0;
     int living_cells = 0;
+	char * temp ;
     for(i = 0 ; i < game_size_x * game_size_y; ++i) {
         living_neighbours = determine_neighbours(i % game_size_x, i / game_size_x, i);
         living_cells += set_new_state(i, living_neighbours);
     }
     // this swaps the two, making it ready for the next round
-    char * temp = cur_game;
+    temp = cur_game;
     cur_game = next_step;
     next_step = cur_game;
     
     return living_cells != 0 ? error_ok : error_ended;
 }
 
-int run_times(unsigned int times) {
-    if (times == 0) return error_bad_input;
+int run_times(unsigned int times) {	
     int i;
+    if (times == 0) return error_bad_input;
     for (i = 0; i < times; ++i) {
         if (error_ended == run_game()) break;
     }
