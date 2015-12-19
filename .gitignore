@@ -18,3 +18,7 @@ Picasso/Debug/*
 *.id0
 ObstacleCourse/Release/
 FinalExes/
+*.exp
+*.id1
+*.nam
+*.til
