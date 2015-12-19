@@ -1,3 +1,5 @@
+// compile in debug settings
+
 #include <stdio.h>
 
 #include "menus.h"
@@ -5,27 +7,31 @@
 #include <stdlib.h>
 
 COORD pos;
-void SaveCursor() {
+__declspec(noinline) void SaveCursor() {
     HANDLE screen = GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_SCREEN_BUFFER_INFO bi;
     GetConsoleScreenBufferInfo(screen, &bi);
     pos = bi.dwCursorPosition;
 }
-void RevertCursor() {
+__declspec(noinline) void RevertCursor() {
     HANDLE screen = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleCursorPosition(screen, pos);
+}
+__declspec(noinline) void clear_cursor () {
+	RevertCursor();
+        printf("                                                                                                                       \r\n");
+        printf("                                                                                                                       ");
+    RevertCursor();
 }
 
 int main(void)
 {
     printf("Wellcome to the ShopManager2000!! \r\nPlease select items from the menu\r\n\r\n");
     size_t subtotal = 0;
-    char ** current = options[2].strings;
-    int * prices = options[2].prices;
-    char size = options[2].size;
-
-    for (int i = 0; i < size; ++i) {
-        printf("\t%d: %s\t\t\t     | $%d   \r\n", i, current[i], prices[i]);
+	menu_options &current = options[0];
+    printf ("%s:\r\n", current.title);
+    for (int i = 0; i < current.size; ++i) {
+		printf("\t%d: %s\t\t\t     | $%d   \r\n", i, current.strings[i], current.prices[i]);
     }  
     printf("\r\n\t%d: %s\r\n", 999, "Terminate");
       
@@ -35,12 +41,9 @@ int main(void)
     do {
         RevertCursor();
         scanf("%d", &choice);
-        RevertCursor();
-        printf("                                                                                                                       \r\n");
-        printf("                                                                                                                       ");
-        RevertCursor();
-        if (choice < size) {
-           subtotal += prices[choice]; 
+        clear_cursor();
+        if (choice < current.size) {
+           subtotal += current.prices[choice]; 
         } else if (choice != 999) {
             printf("\r\n Invalid Choice, try again");
         }

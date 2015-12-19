@@ -1,9 +1,9 @@
 #include <Windows.h>
 __declspec(dllexport)
-DWORD __stdcall WindowProcDontLook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT __stdcall WindowProcDontLook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 __declspec(dllexport)
-void DisplayBuffer(byte* buffer) ;
+void DisplayBufferDontLook() ;
 
 
 HWND hwnd;

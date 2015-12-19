@@ -3,24 +3,22 @@
 
 struct menu_options {
     int size;
+	char * title;
     char **strings;
     int  *prices;    
 };
 
-int prices1 [3]= {1,2,3};
-int prices2[2] = {4,5};
+int prices1 [4]= {3, 2, 1, 10};
+int prices2[3] = {100, 200, 300};
 int prices3[5] = {0,0,0,0,0};
 
-char *strings1[3] = {"a", "b", "c"};
-char *strings2[2] = {"e", "d"};
-char *strings3[5] = {"","","","",""};
+char *strings1[4] = {"Latte", "Esspresso", "Soy Milk", "Sandwich"};
+char *strings2[3] = {"Nice  ", "Rabock", "Lea Keeper"};
 
 menu_options options [3] = {
-    {3, strings1 , prices1}, 
-    {2, strings2, prices2}, 
-    {5, strings3 , prices3}
+    {4, "Cafe", strings1 , prices1}, 
+    {3, "Shoe Store", strings2, prices2}, 
 };
- 
 
 
 #endif

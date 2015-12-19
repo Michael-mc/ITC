@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+
+//
+// compile with tcc for best result
+//
 int main()
 {
     char input [256] = {0};
@@ -8,6 +12,7 @@ int main()
         scanf("%s", input);
     } while(strcmp(input, "MightAsWellBeCool"));
     printf("Thanks!\n");
-    getch();
+    getc(stdin);	
+	getc(stdin);
 	return 1;
 }

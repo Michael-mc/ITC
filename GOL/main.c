@@ -2,105 +2,120 @@
 #include <stdlib.h>
 #include <memory.h>
 
-gol_error_e initialize_gol(unsigned int size_x, unsigned int size_y, char *start_state) {
+#define STATIC_GAME_CELL_SIZE (0x100)
+char cgc [STATIC_GAME_CELL_SIZE]; // current_game_cells 
+char ngc [STATIC_GAME_CELL_SIZE]; //next_game_cells
+
+unsigned int gx, gy, gs; // game_size_x, game_size_y, gp1_size
+char *gp1, *gp2; // cur_game, next_step
+int flag = 0; // game_not_static
+
+
+gol_error_e q5651(unsigned int size_x, unsigned int size_y, char *start_state) {
     if (size_x == 0 || size_y == 0) {
         return error_bad_input;
     }
     if (!start_state) return error_bad_input;
-    game_size_x = size_x;
-    game_size_y = size_y;
-    if (size_x * size_y <= STATIC_GAME_CELL_SIZE) {
-		game_not_static = 0;
-        cur_game = cur_game_cells;
-        next_step = next_game_cells;
+    gx = size_x;
+    gy = size_y;
+	gs = size_x * size_y;
+    if (gs <= STATIC_GAME_CELL_SIZE) {
+		flag = 0;
+        gp1 = cgc;
+        gp2 = ngc;
     }
     else {
-		game_not_static = 1;
-        cur_game = (char *)malloc(size_x * size_y);
-        if (!cur_game) return error_no_mem;
-        next_step = (char *)malloc(size_x * size_y);
-        if (!next_step) {
-            free(cur_game);
+		flag = 1;
+        gp1 = (char *)malloc(gs);
+        if (!gp1) return error_no_mem;
+        gp2 = (char *)malloc(gs);
+        if (!gp2) {
+            free(gp1);
             return error_no_mem;
         }
     }
     
-    memcpy(cur_game, start_state, size_x * size_y);
+    memcpy(gp1, start_state, gs);
     return error_ok;
 }
 
-int determine_neighbours(unsigned int x, unsigned int y, unsigned int cur_spot) {
+static int hmm(unsigned int x, unsigned int y) {
     int out = 0;
-    int is_top = y == 0;
-    int is_bottom = y == game_size_y - 1;
-    int is_left = x == 0;
-    int is_right = x == game_size_x - 1;
+    int up_index = y == 0 ? (gy - 1) : y - 1;
+    int down_index = y == (gy - 1) ? 0 : y + 1;
+    int left_index = x == 0 ? (gx - 1) : x - 1;
+    int right_index = x == (gx - 1) ? 0 : x + 1;
     
-    if (!is_top) {
-        out += cur_game[cur_spot - game_size_x ] != 0;
-        if (!is_right) cur_game[cur_spot - 1 - game_size_x] != 0;
-        if (!is_left) cur_game[cur_spot  +1 - game_size_x] != 0;
-    }
-    if (!is_bottom) {
-        out += cur_game[cur_spot + game_size_x] != 0;
-        if (!is_right) cur_game[cur_spot + game_size_x - 1] != 0;
-        if (!is_left) cur_game[cur_spot + game_size_x + 1] != 0;
-    }
-    if (!is_right) cur_game[cur_spot - 1] != 0;
-    if (!is_left) cur_game[cur_spot + 1] != 0;
-    
+	out += gp1[up_index * gx + left_index];
+	out += gp1[up_index * gx + x];
+	out += gp1[up_index * gx + right_index];
+	out += gp1[y * gx + left_index];
+	out += gp1[y * gx + right_index];
+    out += gp1[down_index * gx + left_index];
+	out += gp1[down_index * gx + x];
+	out += gp1[down_index * gx + right_index];
+	
     return out;
 }
 
 
-__forceinline int set_new_state(int i, int living_neighbours) {
-    if (cur_game[i] == 1) // is alive
+static __forceinline int gamee(int x, int y,  int living_neighbours) {
+	unsigned int i = x + y* gx;
+    if (gp1[i] == 1) // is alive
     {
-        if ( (living_neighbours < 3) && (living_neighbours > 2) ) {
-            next_step[i] = 1; // remains alive
+        if ( (living_neighbours == 3) || (living_neighbours == 2) ) {
+            gp2[i] = 1; // remains alive
             return 1;                
         }
     }
     else if (living_neighbours == 3) {
-        next_step[i] = 1; // spawns
+        gp2[i] = 1; // spawns
         return 1;
     }
         
-    next_step[i] = 0;
+    gp2[i] = 0;
     return 0;
 }
 
-gol_error_e run_game() {
-    unsigned int i;
+gol_error_e x56554() {
+    unsigned int i, j;
     int living_neighbours = 0;
     int living_cells = 0;
 	char * temp ;
-    for(i = 0 ; i < game_size_x * game_size_y; ++i) {
-        living_neighbours = determine_neighbours(i % game_size_x, i / game_size_x, i);
-        living_cells += set_new_state(i, living_neighbours);
+	for(i = 0 ; i < gy; ++i) {
+		for ( j = 0; j < gx; j++) {
+			living_neighbours = hmm(j, i);
+			living_cells += gamee(j, i,  living_neighbours);
+		}
     }
     // this swaps the two, making it ready for the next round
-    temp = cur_game;
-    cur_game = next_step;
-    next_step = cur_game;
+    temp = gp1;
+    gp1 = gp2;
+    gp2 = temp;
     
     return living_cells != 0 ? error_ok : error_ended;
 }
 
-int run_times(unsigned int times) {	
+int rs51336(unsigned int times) {	
     int i;
     if (times == 0) return error_bad_input;
     for (i = 0; i < times; ++i) {
-        if (error_ended == run_game()) break;
+        if (error_ended == x56554()) break;
     }
     return i;
 }
 
-void destroy_game() {
-    if (game_not_static) {
-        free(cur_game);
-        free(next_step);
+void dit6213() {
+    if (flag) {
+        free(gp1);
+        free(gp2);
     }
-    game_size_x = 0;
-    game_size_y = 0;
+    gx = 0;
+    gy = 0;
+}
+
+gol_error_e tt66612(unsigned int size, char *states) {
+	if (size < gs) return error_bad_input;
+	memcpy(states, gp1, gs);
+	return error_ok;
 }

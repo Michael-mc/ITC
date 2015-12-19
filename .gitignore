@@ -13,3 +13,8 @@ Picasso/Debug/*
 *.sdf
 *.opensdf
 
+*.tlog
+*.lastbuildstate
+*.id0
+ObstacleCourse/Release/
+FinalExes/

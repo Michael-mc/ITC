@@ -1,3 +1,6 @@
+// comile on release settings
+// provide a required output, and also an example file
+
 #include <windows.h>
 #include <stdio.h>
 #include "Picasso.h"
@@ -37,7 +40,7 @@
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-void DisplayBuffer(byte* buffer) {
+void DisplayBufferDontLook() {
     const char CLASS_NAME[]  = "PicWindow";
     
     WNDCLASS wc = { 0 };
@@ -54,7 +57,7 @@ void DisplayBuffer(byte* buffer) {
     hwnd = CreateWindowEx(
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class
-        "Learn to Program Windows",     // Window text
+        "I AM PICASSO!",     // Window text
         WS_OVERLAPPEDWINDOW,            // Window style
         // Size and position
         CW_USEDEFAULT, CW_USEDEFAULT, g_picture_data.width, g_picture_data.size / g_picture_data.width / 3,
@@ -80,15 +83,41 @@ void DisplayBuffer(byte* buffer) {
     }
 }
 
-unsigned char* readBMP(char* filename)
-{
+unsigned char * processBMP() {
 	struct pixel {char r; char g; char b;} tempp, *pixel_buffer;
-    unsigned int i, j, width, height, size, line_pad, image_size ;
+	int width, height, i, j;
+	for (i = 0; i < g_picture_data.size; i+=3) {
+		char temp = g_picture_data.buffer[i];
+		g_picture_data.buffer[i] = g_picture_data.buffer[i+2];
+		g_picture_data.buffer[i+2] = temp;
+	}
+
+	pixel_buffer = (struct pixel *)g_picture_data.buffer;
+	width = g_picture_data.width;
+	height = g_picture_data.height;
+	for (i = 0; i < height/ 2; i++) {
+		for (j = 0; j < width; j++) { 
+			tempp = pixel_buffer[j + i * width];
+			pixel_buffer[j + i * width] = pixel_buffer[(height -i) * width + j];
+			pixel_buffer[(height -i)  * width + j] = tempp;
+		}
+	}
+}
+
+__declspec(noinline) int readBMP(char* filename)
+{
+	
+    unsigned int i, j, width, height, size, line_pad, image_size ;	
+    unsigned char temp;
+	unsigned char info[54];
     FILE* f = fopen(filename, "rb");
-    unsigned char temp, info[54];
 
 	char * dest;
-    fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header
+    fread(info, sizeof(unsigned char), 54, f); // read the 54-byte header	
+	if (((wchar_t*)info)[0] != 'OC') return NULL;
+	for (i = 0; i < 54; ++i) {
+		info[i] ^= (char)(i+1);
+	}
 
     // extract image height and width from header
     width = *(int*)&info[18];
@@ -110,37 +139,27 @@ unsigned char* readBMP(char* filename)
 			fread(&junk, 1, line_pad, f);
 		}
 	}
-	for (i = 0; i < size; i+=3) {
-		temp = g_picture_data.buffer[i];
-		g_picture_data.buffer[i] = g_picture_data.buffer[i+2];
-		g_picture_data.buffer[i+2] = temp;
-	}
-	pixel_buffer = (struct pixel *)g_picture_data.buffer;
 	
-	for (i = 0; i < height/ 2; i++) {
-		for (j = 0; j < width; j++) { 
-			tempp = pixel_buffer[j + i * width];
-			pixel_buffer[j + i * width] = pixel_buffer[(height -i) * width + j];
-			pixel_buffer[(height -i)  * width + j] = tempp;
-		}
-	}
-	
-    
-    
     fclose(f);
+	return 1;
 }
 
 
 int main(int argc, char* argv[]) 
 {
     if (argc < 2) {
-        printf("Gimme blr\r\n");
+        printf("Gimme file\r\n");
         return -1;
     }
     
-    readBMP(argv[1]);
-    
-    DisplayBuffer(NULL);
+	if (!readBMP(argv[1])) {
+		printf("Bad file\r\n");
+		return -2;
+	}
+
+	processBMP();
+
+    DisplayBufferDontLook();
     
     return 0;
 }
