@@ -74,6 +74,7 @@ void main(int argc, char * argv[]) {
 
 	
 	crc_start = strstr(buffer, "\n~~~~~\n");	
+	if(!crc_start) { goto security;}
 	commands_size = crc_start - buffer;
 	crc_start += 7;
 
@@ -83,11 +84,13 @@ void main(int argc, char * argv[]) {
 	}
 	
 	else {
-		printf("File not secure, not executing");
-		return ;
+		goto security;
 	}
-
+security:
+	printf("File not secure, not executing");
+	goto free_stuff;
 usage:	
 		print_usage();
-		return;
+free_stuff:
+		if(buffer) free(buffer);
 }

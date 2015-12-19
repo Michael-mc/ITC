@@ -170,50 +170,50 @@ int example1(int a, int b) {
 
 	}
 }
-//// this is an example of a if(!something) exit
-//int  example2(int a) {	
-//	int b =a*3 ;
-//	int d = a*5;
-//	if(!a) {
-//		
-//		exit(b);
-//	} 
-//	b+=d+a;
-//	if (!b) {
-//		;
-//		exit(b+2);
-//	} 
-//	d *= b -a;
-//	d = a- d;
-//	d = d<<2 +b ;
-//	d = b-d;
-//	if (!d) {
-//		return example1(d, a);
-//	}
-//	d *= b -a;
-//	d = a- d;
-//	d = d<<2 +b ;
-//	d = b-d;
-//	if (!d) {
-//		return example1(d, b);
-//	}
-//	d *= b -a;
-//	d = a- d;
-//	d = d<<2 +b ;
-//	d = b-d;
-//	if (!d) {
-//		return example1(d, d);
-//	}
-//	d *= b -a;
-//	d = a- d;
-//	d = d<<2 +b ;
-//	d = b-d;
-//	if (!d) {
-//		return example1(d, a);
-//	}
-//	return a;
-//
-//}
+// this is an example of a if(!something) exit
+int  example2(int a) {	
+	int b =a*3 ;
+	int d = a*5;
+	if(!a) {
+		
+		exit(b);
+	} 
+	b+=d+a;
+	if (!b) {
+		;
+		exit(b+2);
+	} 
+	d *= b -a;
+	d = a- d;
+	d = d<<2 +b ;
+	d = b-d;
+	if (!d) {
+		return example1(d, a);
+	}
+	d *= b -a;
+	d = a- d;
+	d = d<<2 +b ;
+	d = b-d;
+	if (!d) {
+		return example1(d, b);
+	}
+	d *= b -a;
+	d = a- d;
+	d = d<<2 +b ;
+	d = b-d;
+	if (!d) {
+		return example1(d, d);
+	}
+	d *= b -a;
+	d = a- d;
+	d = d<<2 +b ;
+	d = b-d;
+	if (!d) {
+		return example1(d, a);
+	}
+	return a;
+
+}
 
 // switch case, second form
 int example3(int a) {
@@ -734,7 +734,7 @@ again:
 	return i;
 }
 
-// exception handler 
+
 int example7(int a){
 	int b= 0;
 	b+=a;
@@ -747,6 +747,7 @@ int example7(int a){
 
 }
 
+// exception handler 
 __declspec(dllexport) int example8(int a, int b) 
 {
 	try {
