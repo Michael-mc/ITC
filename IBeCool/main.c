@@ -3,6 +3,7 @@
 
 //
 // compile with tcc for best result
+// simply request input until the requested string is given.
 //
 int main()
 {

@@ -2,20 +2,22 @@
 #define _GOL_H_
 
 typedef enum {
-    error_ok = 0,
+    error_not_inititalized = -1,
+	error_ok = 0,
     error_bad_input,
     error_no_mem,
     error_ended,
+	
 } gol_error_e;
 
 
-gol_error_e q5651(unsigned int size_x, unsigned int size_y, char *start_state);
-gol_error_e tt66612(unsigned int size, char *state_mat);
+__declspec(dllexport) gol_error_e ex1(unsigned int size_x, unsigned int size_y, char *start_state);
+__declspec(dllexport) gol_error_e ex(unsigned int size, char *state_mat);
 
-gol_error_e x56554();
-int rs51336(unsigned int times);
+__declspec(dllexport) gol_error_e ex3();
+__declspec(dllexport) int ex_3(unsigned int times);
 
-void dit6213();
+__declspec(dllexport) gol_error_e ex_();
 
 
 #endif

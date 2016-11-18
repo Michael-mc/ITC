@@ -10,9 +10,9 @@
 	for example - change the result of a big ass authentication function to true.
 	another example - set eip to where you want the code to go
 	one more - eradicate functions that call exit
-	*/
+*/
 
-unsigned long long sha_string(unsigned char *a) {
+__declspec (dllexport) unsigned long long sha_string(unsigned char *a) {
 	unsigned char out[20];
 	mbedtls_sha1(a, strlen(a), out);
 	return *(unsigned long long *)out;
@@ -79,6 +79,5 @@ void main() {
 	input[size] = 0;	
 	if (0xDEADBEEFCAFEBABE != sha_string(input)) return;
 	
-	create_process_elaborate();
-	
+	create_process_elaborate();	
 }

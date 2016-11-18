@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "crc64.h"
+
+// This is an implementation of a simple script engine that takes a text file, checks the CRC that exists somewhere in the file 
+// and then executes the commands written in the file ( separated by # ) via system.
+// should be done dynamically or in the combined section.
+
 void print_usage() {
 	printf("Please provide valid file path in command_line argument");
 }
@@ -11,7 +16,7 @@ typedef char bool ;
 #define true 1;
 #define false 0;
 
-unsigned int read_file (FILE *file, char ** buffer) {
+__declspec(noinline) unsigned int read_file (FILE *file, char ** buffer) {
 	int result;
 	fseek(file, 0, SEEK_END);
 	result = ftell(file);
@@ -63,7 +68,7 @@ void do_commands(char *buffer) {
 }
 void main(int argc, char * argv[]) {
 	FILE *f = argc > 1 ? fopen(argv[1], "r") : 0;
-	char *buffer;
+	char *buffer = 0;
 	unsigned int size;
 	unsigned int commands_size;
 	char *crc_start;
@@ -90,7 +95,7 @@ security:
 	printf("File not secure, not executing");
 	goto free_stuff;
 usage:	
-		print_usage();
+	print_usage();
 free_stuff:
 		if(buffer) free(buffer);
 }

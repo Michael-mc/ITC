@@ -1,5 +1,7 @@
 // compile in debug settings
 
+// In this process they need to change the executable file so that the program will show the shoe shop menu (which is also declared in menus.h)
+
 #include <stdio.h>
 
 #include "menus.h"
@@ -51,6 +53,7 @@ int main(void)
     
     system("cls");
     
-    printf("\r\n\r\n Thank you! subtotal was: %d", subtotal);
+   printf("\r\n\r\n Thank you! subtotal was: %d", subtotal);
+   getc(stdin);
    return 0; 
 }

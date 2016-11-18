@@ -1,4 +1,6 @@
 // comile on release settings
+// basically this gets a BMP file that was a little tweaked and presents it on the screen. 
+// the tweaking is: the header is xorred, the pixels are reversed.
 // provide a required output, and also an example file
 
 #include <windows.h>

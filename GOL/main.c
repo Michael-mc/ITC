@@ -1,42 +1,45 @@
+// This is a lib implementing the functionality of Game of Life.
+// the students will have to reverse the library to understand its interface and use it to create a game.
+// they should have an SLN provided with the .lib file compiled and a header file that has declarations of the functions they need to call.
+// if the declarations actually match the parameters given is up to the teacher to decide.
+
+
 #include "GOL.h"
 #include <stdlib.h>
 #include <memory.h>
 
 #define STATIC_GAME_CELL_SIZE (0x100)
-char cgc [STATIC_GAME_CELL_SIZE]; // current_game_cells 
-char ngc [STATIC_GAME_CELL_SIZE]; //next_game_cells
+//static char cgc [STATIC_GAME_CELL_SIZE]; // current_game_cells 
+//static char ngc [STATIC_GAME_CELL_SIZE]; //next_game_cells
 
-unsigned int gx, gy, gs; // game_size_x, game_size_y, gp1_size
-char *gp1, *gp2; // cur_game, next_step
-int flag = 0; // game_not_static
+static unsigned int gx, gy, gs; // game_size_x, game_size_y, gp1_size
+static char *gp1, *gp2; // cur_game, next_step
+static int flag = 0; // game_not_static
 
 
-gol_error_e q5651(unsigned int size_x, unsigned int size_y, char *start_state) {
+gol_error_e ex1(unsigned int size_x, unsigned int size_y, char *start_state) {
+	if (!flag) return error_not_inititalized;
     if (size_x == 0 || size_y == 0) {
         return error_bad_input;
     }
     if (!start_state) return error_bad_input;
     gx = size_x;
     gy = size_y;
-	gs = size_x * size_y;
-    if (gs <= STATIC_GAME_CELL_SIZE) {
-		flag = 0;
-        gp1 = cgc;
-        gp2 = ngc;
+	gs = size_x * size_y;       
+	
+    gp1 = (char *)malloc(gs);
+    if (!gp1) goto nomem;
+    gp2 = (char *)malloc(gs);
+    if (!gp2) {
+        free(gp1);
+        goto nomem;
     }
-    else {
-		flag = 1;
-        gp1 = (char *)malloc(gs);
-        if (!gp1) return error_no_mem;
-        gp2 = (char *)malloc(gs);
-        if (!gp2) {
-            free(gp1);
-            return error_no_mem;
-        }
-    }
+    flag = 1;
     
     memcpy(gp1, start_state, gs);
     return error_ok;
+nomem:
+	return error_no_mem;
 }
 
 static int hmm(unsigned int x, unsigned int y) {
@@ -77,11 +80,12 @@ static __forceinline int gamee(int x, int y,  int living_neighbours) {
     return 0;
 }
 
-gol_error_e x56554() {
+gol_error_e ex3() {
     unsigned int i, j;
     int living_neighbours = 0;
     int living_cells = 0;
-	char * temp ;
+	char * temp ;	
+	if (!flag) return error_not_inititalized;
 	for(i = 0 ; i < gy; ++i) {
 		for ( j = 0; j < gx; j++) {
 			living_neighbours = hmm(j, i);
@@ -96,25 +100,31 @@ gol_error_e x56554() {
     return living_cells != 0 ? error_ok : error_ended;
 }
 
-int rs51336(unsigned int times) {	
+int ex_3(unsigned int times) {	
     int i;
+	if (!flag) return error_not_inititalized;
     if (times == 0) return error_bad_input;
     for (i = 0; i < times; ++i) {
-        if (error_ended == x56554()) break;
+        if (error_ended == ex3()) break;
     }
     return i;
 }
 
-void dit6213() {
+gol_error_e ex_() {
+	
     if (flag) {
         free(gp1);
         free(gp2);
+		gx = 0;
+		gy = 0;	
+		flag = 0;
+		return error_ok;
     }
-    gx = 0;
-    gy = 0;
+	return error_not_inititalized;
 }
 
-gol_error_e tt66612(unsigned int size, char *states) {
+gol_error_e ex(unsigned int size, char *states) {
+	if (!flag) return error_not_inititalized;
 	if (size < gs) return error_bad_input;
 	memcpy(states, gp1, gs);
 	return error_ok;

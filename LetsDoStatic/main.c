@@ -3,6 +3,7 @@
 
 //
 // note - build using tiny c compiler for best results.
+// This is a demo exercise.
 //
 
 

@@ -1,5 +1,13 @@
 // compile this using release settings!
 
+
+// This here is an ugly implementation of a maze, with a character moving according to the input given via stdin ( as numbers )
+// there are a couple of objectives here. One is to win, the other is to understand why there are 2 winning messages (one for just escaping 
+// the the "CAR" constant, the other is for doing so while gathering more than a certain ammount of money)
+
+
+
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -143,6 +151,7 @@ __declspec(noinline) doMoveErrors doMove(int array[ROWS][COLS] , struct Pos *pos
 	}
 	return SUCCESS;
 }
+
 void wrong() {
 	printf("Wrong Password, try again.\n");
 }
